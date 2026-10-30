@@ -1,0 +1,30 @@
+name: Importar ARGOS completo
+on:
+  push:
+    paths: ['.github/workflows/importar-argos.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  importar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copiar ARGOS original
+        run: |
+          git clone --depth 1 --branch gh-pages https://github.com/LGRSV/vera-vegeta-o-back.git /tmp/argos-original
+          cp -a /tmp/argos-original/teste .
+          cp -a /tmp/argos-original/ferramentas .
+          touch .nojekyll
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('teste/assets/menu.js')
+          s=p.read_text().replace("const doSite = p => noSite ? raiz + p : 'https://lgrsv.github.io/vera-vegeta-o-back/teste/' + p;", "const doSite = p => raiz + p;")
+          s=s.replace("ramo: 'gh-pages'", "ramo: 'main'")
+          p.write_text(s)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add teste ferramentas .nojekyll
+          git commit -m "Importar ARGOS completo de vera-vegeta-o-back/teste com podas e scripts"
+          git push
